@@ -1,0 +1,29 @@
+Image_name;Plane;Train ;Patient_num
+3VV;Fetal thorax;0;1
+4CH;Fetal thorax;0;2
+ABDOMINAL;Fetal abdomen;0;3
+abdominal;Fetal abdomen;0;3
+abdominal1;Fetal abdomen;0;3
+abdominal2(yt);Fetal abdomen;0;3
+brain1;Fetal brain;0;4
+brain2;Fetal brain;0;4
+brain3(yt);Fetal brain;0;4
+BRAIN-CB;Fetal brain;0;4
+BRAIN-TV;Fetal brain;0;4
+FEMUR;Fetal femur;0;5
+femur;Fetal femur;0;5
+femur1;Fetal femur;0;5
+FEMUR(1);Fetal femur;0;5
+femur(yt);Fetal femur;0;5
+Image1;Fetal abdomen;0;6
+Image2;Fetal brain;0;7
+Image3;Fetal brain;0;7
+Image4;Fetal brain;0;7
+Image5;Fetal abdomen;0;6
+KIDNEYS;Other;0;8
+LIPS;Other;0;8
+LVOT;Fetal thorax;0;9
+PROFILE;Other;0;10
+RVOT;Fetal thorax;0;9
+SPINE-CORONAL;Other;0;11
+SPINE-SAGITTAL;Other;0;11

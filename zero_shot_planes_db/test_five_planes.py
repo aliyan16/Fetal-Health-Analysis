@@ -11,11 +11,11 @@ from tqdm import tqdm
 from torchmetrics import Accuracy, F1Score
 
 # Constants and Configuration
-DIR_IMAGES = "<path_to_fetalplanesdb_data>/Images"
-PATH_CSV = "<path_to_fetalplanesdb_data>/FETAL_PLANES_DB_data.csv"
-PATH_FETALCLIP_WEIGHT = "../FetalCLIP_weights.pt"
-PATH_FETALCLIP_CONFIG = "../FetalCLIP_config.json"
-PATH_TEXT_PROMPTS = "test_five_planes_prompts.json"
+DIR_IMAGES = "C:\\AllData\\Selfskills\\FYP\\FetalCLIP\\TestImages"
+PATH_CSV = "C:\\AllData\\Selfskills\\FYP\\FetalCLIP\\FETAL_PLANES_DB_data.csv"
+PATH_FETALCLIP_WEIGHT = "C:\\AllData\\Selfskills\\FYP\\FetalCLIP\\FetalCLIP_weights.pt"
+PATH_FETALCLIP_CONFIG = "C:\\AllData\\Selfskills\\FYP\\FetalCLIP\\FetalCLIP_config.json"
+PATH_TEXT_PROMPTS = "C:\\AllData\\Selfskills\\FYP\\FetalCLIP\\zero_shot_planes_db\\test_five_planes_prompts.json"
 BATCH_SIZE = 16
 NUM_WORKERS = 4
 
@@ -28,29 +28,32 @@ with open(PATH_FETALCLIP_CONFIG, "r") as file:
 open_clip.factory._MODEL_CONFIGS["FetalCLIP"] = config_fetalclip
 
 class DatasetFetalPlanesDB(torch.utils.data.Dataset):
-    def __init__(
-            self, dir_images, path_csv, preprocess, split='all',
-            exclude_planes=['Other'],
-        ):
+    def __init__(self, dir_images, path_csv, preprocess, split='all', exclude_planes=['Other']):
         self.root = dir_images
         self.preprocess = preprocess
         
         df = pd.read_csv(path_csv, sep=';')
+        df.columns = df.columns.str.strip()       # remove trailing/leading spaces
+        df.columns = df.columns.str.lower()       # make lowercase for consistency  
+        print("CSV columns:", df.columns.tolist())  # 👈 add this
+
         if split == 'train':
-            df = df[df['Train '] == 1]
+            df = df[df['train'] == 1]
         elif split == 'test':
-            df = df[df['Train '] == 0]
-        
+            df = df[df['train'] == 0]
+
         for plane in exclude_planes:
-            df = df[df['Plane'] != plane]
-        
+            df = df[df['plane'] != plane]
+
         self.data = []
         for _, row in df.iterrows():
+            img_path = self.find_image_file(self.root, row['image_name'])
             self.data.append({
-                'img': os.path.join(self.root, f"{row['Image_name']}.png"),
-                'plane': row['Plane'],
-                'pid': row['Patient_num'],
+                'img': img_path,
+                'plane': row['plane'],
+                'pid': row['patient_num'],
             })
+
     
     def __len__(self):
         return len(self.data)
@@ -58,11 +61,19 @@ class DatasetFetalPlanesDB(torch.utils.data.Dataset):
     def __getitem__(self, index):
         img = Image.open(self.data[index]['img'])
         img = make_image_square_with_zero_padding(img)
-
         img = self.preprocess(img)
         plane = self.data[index]['plane']
-        
         return img, plane, self.data[index]['img']
+
+    @staticmethod
+    def find_image_file(root, basename):
+        exts = [".png", ".jpg", ".jpeg", ".tiff"]
+        for ext in exts:
+            path = os.path.join(root, f"{basename}{ext}")
+            if os.path.exists(path):
+                return path
+        raise FileNotFoundError(f"No image file found for {basename} in {root}")
+
 
 def make_image_square_with_zero_padding(image):
     width, height = image.size
